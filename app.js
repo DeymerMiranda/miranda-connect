@@ -59,6 +59,15 @@ const TEAM_MEMBERS = [
     type: "direct"
   },
   {
+    id: "diseno",
+    cid: "bc2a710c-ed7a-44e2-aa5e-08ae02a26942",
+    name: "GERENTE DE DISEÑO",
+    role: "Dirección de Arte, UI/UX & Sistemas Visuales",
+    avatar: "🎨",
+    status: "active",
+    type: "direct"
+  },
+  {
     id: "trabajador1",
     cid: "c5be482b-cbe0-4cbb-821e-13fbef6b3c0a",
     name: "TRABAJADOR 1",
@@ -491,6 +500,8 @@ function generateAgentResponse(userText, mediaType) {
     responseText = `🗺️ **[Gerente de Planificación]:** Tarea y cronograma actualizados para: "${userText}". Se consulta e integra en el plan maestro.`;
   } else if (activeChat.id === "asistente") {
     responseText = `📋 **[Asistente de Gerencia]:** Actividad registrada minuciosamente en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
+  } else if (activeChat.id === "diseno") {
+    responseText = `🎨 **[Gerente de Diseño]:** Propuesta visual analizada: "${userText}". Aplicando estándares de UI/UX, micro-animaciones y paletas cromáticas premium.`;
   } else if (activeChat.id === "seguridad") {
     responseText = `🛡️ **[Gerente de Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". 0 vulnerabilidades detectadas, canal encriptado y seguro.`;
   } else {
