@@ -1,6 +1,5 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v6
-   Título Oficial: RESPONSABLE DE DISEÑO (bc2a710c-ed7a-44e2-aa5e-08ae02a26942)
+   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v8 (WHATSAPP INPUT FIX)
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -111,7 +110,7 @@ let isRecording = false;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v6");
+  const saved = localStorage.getItem("miranda_chat_histories_v8");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -120,8 +119,8 @@ function loadPersistentHistories() {
     initial[c.id] = [
       {
         sender: "system",
-        text: `Canal seguro con **${c.name}** (CID: \`${c.cid}\`). Respaldo 24/7 inmutable activo.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: "🔒 Chat cifrado 24/7 con " + c.name,
+        time: ""
       }
     ];
   });
@@ -129,7 +128,7 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v6", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v8", JSON.stringify(chatHistories));
 }
 
 const contactsListEl = document.getElementById("contacts-list");
@@ -324,22 +323,26 @@ function renderActiveChatMessages() {
 
   history.forEach(msg => {
     const bubble = document.createElement("div");
-    bubble.className = `message-bubble ${msg.sender === 'user' ? 'sent' : 'received'}`;
-
-    let contentHtml = "";
-    if (msg.mediaType === "voice") {
-      contentHtml += `<div class="media-tag">🎙️ Nota de Voz</div>`;
-    } else if (msg.mediaType === "photo") {
-      contentHtml += `<div class="media-tag">📷 Recibo de Tarjeta</div>`;
-      if (msg.imgSrc) {
-        contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
+    
+    if (msg.sender === "system") {
+      bubble.className = "message-bubble system";
+      bubble.innerHTML = `<div>${formatMarkdown(msg.text)}</div>`;
+    } else {
+      bubble.className = `message-bubble ${msg.sender === 'user' ? 'sent' : 'received'}`;
+      let contentHtml = "";
+      if (msg.mediaType === "voice") {
+        contentHtml += `<div class="media-tag">🎙️ Nota de Voz</div>`;
+      } else if (msg.mediaType === "photo") {
+        contentHtml += `<div class="media-tag">📷 Recibo de Tarjeta</div>`;
+        if (msg.imgSrc) {
+          contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
+        }
       }
+      contentHtml += `<div>${formatMarkdown(msg.text)}</div>`;
+      contentHtml += `<span class="time">${msg.time}</span>`;
+      bubble.innerHTML = contentHtml;
     }
 
-    contentHtml += `<div>${formatMarkdown(msg.text)}</div>`;
-    contentHtml += `<span class="time">${msg.time}</span>`;
-
-    bubble.innerHTML = contentHtml;
     messagesContainerEl.appendChild(bubble);
   });
 
