@@ -1,6 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & PERMANENT STORAGE ENGINE v3
-   Sincronización Inmutable 24/7 + Control de Gastos para Lindsay
+   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v4
+   Notificaciones de Gastos de Lindsay en Tiempo Real para Deymer
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -102,7 +102,6 @@ const CHANNELS = [
   { id: "chan-proyectos", name: "#planificacion", role: "Canal Proyectos", avatar: "🎯", cid: "CANAL_PLANIFICACIÓN" }
 ];
 
-// ESTADO DE LA APLICACIÓN Y ALMACENAMIENTO PERSISTENTE 24/7
 let activeChat = TEAM_MEMBERS[0];
 let currentTab = "contacts";
 let chatHistories = loadPersistentHistories();
@@ -111,9 +110,8 @@ let audioChunks = [];
 let isRecording = false;
 let attachedMedia = null;
 
-// CARGAR HISTORIAL PERSISTENTE DE LOCALSTORAGE
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v3");
+  const saved = localStorage.getItem("miranda_chat_histories_v4");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -130,12 +128,10 @@ function loadPersistentHistories() {
   return initial;
 }
 
-// GUARDAR HISTORIAL PERSISTENTE
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v3", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v4", JSON.stringify(chatHistories));
 }
 
-// ELEMENTOS DEL DOM
 const contactsListEl = document.getElementById("contacts-list");
 const messagesContainerEl = document.getElementById("messages-container");
 const chatFormEl = document.getElementById("chat-form");
@@ -162,7 +158,6 @@ const closeSettingsBtn = document.getElementById("close-settings-btn");
 const cancelSettingsBtn = document.getElementById("cancel-settings-btn");
 const saveSettingsBtn = document.getElementById("save-settings-btn");
 
-// INICIALIZACIÓN
 document.addEventListener("DOMContentLoaded", () => {
   setupLockScreen();
   registerServiceWorker();
@@ -197,7 +192,6 @@ function checkPwaInstallState() {
   }
 }
 
-// BLOQUEO INTELIGENTE DSMO1109 / LINDSAY2026!
 function setupLockScreen() {
   const lockForm = document.getElementById("lock-screen-form");
   const lockInput = document.getElementById("lock-password-input");
@@ -232,7 +226,19 @@ function setupLockScreen() {
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW error:", err));
+    navigator.serviceWorker.register("./sw.js").then((reg) => {
+      // Auto-actualizar silenciosamente si hay nueva versión
+      reg.onupdatefound = () => {
+        const installingWorker = reg.installing;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              window.location.reload();
+            }
+          }
+        };
+      };
+    }).catch(err => console.log("SW error:", err));
   }
 }
 
@@ -487,8 +493,13 @@ function sendMessage(text) {
     chatHistories[activeChat.id] = [];
   }
   chatHistories[activeChat.id].push(msgObj);
-  savePersistentHistories(); // PERSISTENCIA INMUTABLE EN LOCALSTORAGE
+  savePersistentHistories();
   renderActiveChatMessages();
+
+  // SI ES MODO ESPOSA (LINDSAY), NOTIFICAR AUTOMÁTICAMENTE A DEYMER
+  if (isEsposaMode) {
+    notifyDeymerAboutLindsayExpense(msgObj);
+  }
 
   messageTextInput.value = "";
   clearMediaPreview();
@@ -496,6 +507,24 @@ function sendMessage(text) {
   setTimeout(() => {
     generateAgentResponse(text, msgObj.mediaType);
   }, 900);
+}
+
+// ALERTA DE GASTO EN TIEMPO REAL PARA DEYMER
+function notifyDeymerAboutLindsayExpense(msgObj) {
+  const alertTitle = "💳 ¡ALERTA DE GASTO EN TARJETA!";
+  const alertBody = `Lindsay reportó un nuevo gasto: ${msgObj.text}`;
+  
+  // Notificación Nativa Push en Pantalla
+  showNativeNotification(alertTitle, alertBody);
+
+  // Registrar en el chat del Manager (Deymer)
+  if (!chatHistories["manager"]) chatHistories["manager"] = [];
+  chatHistories["manager"].push({
+    sender: "system",
+    text: `🔔 **[ALERTA EN TIEMPO REAL PARA DEYMER]:** Lindsay acaba de registrar un gasto en la tarjeta: "${msgObj.text}". Enviado a Contabilidad.`,
+    time: msgObj.time
+  });
+  savePersistentHistories();
 }
 
 function generateAgentResponse(userText, mediaType) {
@@ -506,10 +535,10 @@ function generateAgentResponse(userText, mediaType) {
     responseText = `👑 **[Gerente General]:** Recibido Director. Orden asentada en la bitácora: "${userText}". Coordinando ejecución inmediata.`;
   } else if (activeChat.id === "contabilidad") {
     responseText = mediaType === "photo"
-      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra en tarjeta de Lindsay procesado al 100%. Asentado formalmente en `RECIBOS_CONTABLES.md`."
+      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra en tarjeta de Lindsay procesado al 100%. Asentado formalmente en `RECIBOS_CONTABLES.md` y notificado a Deymer."
       : (mediaType === "voice"
-        ? "🎙️ **[Gerente de Contabilidad]:** Reporte de voz de Lindsay transcrito y conciliado en la bitácora de egresos de la tarjeta."
-        : `📚 **[Gerente de Contabilidad]:** Gasto reportado por Lindsay asentado exitosamente: "${userText}". Libros y saldos conciliados al 100%.`);
+        ? "🎙️ **[Gerente de Contabilidad]:** Reporte de voz de Lindsay transcrito y conciliado en la bitácora. Notificación enviada a Deymer."
+        : `📚 **[Gerente de Contabilidad]:** Gasto de tarjeta asentado exitosamente: "${userText}". Libros y saldos conciliados al 100%.`);
   } else if (activeChat.id === "financiero") {
     responseText = `📊 **[Gerente Financiero]:** Gasto de tarjeta analizado: "${userText}". Descontado del presupuesto de compras de Lindsay y conciliado con el saldo disponible.`;
   } else if (activeChat.id === "planificacion") {
@@ -530,7 +559,7 @@ function generateAgentResponse(userText, mediaType) {
     time: time
   });
 
-  savePersistentHistories(); // PERSISTENCIA INMUTABLE DE RESPUESTAS
+  savePersistentHistories();
   renderActiveChatMessages();
   showNativeNotification(`Mensaje de ${activeChat.name}`, responseText.replace(/\*\*/g, ''));
 }
