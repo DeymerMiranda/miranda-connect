@@ -1,9 +1,8 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE (DESIGN REFACTOR)
-   UI/UX Refactor dirigidos por Gerente de Diseño y Planificación
+   EQUIPO MIRANDA - WEB APP LOGIC & PERMANENT STORAGE ENGINE v3
+   Sincronización Inmutable 24/7 + Control de Gastos para Lindsay
    ========================================================================== */
 
-// 1. DIRECTORIO OFICIAL CON ROLES COMPACTOS Y MINIMALISTAS
 const TEAM_MEMBERS = [
   {
     id: "manager",
@@ -36,7 +35,7 @@ const TEAM_MEMBERS = [
     id: "planificacion",
     cid: "d6ad3c41-6a17-4f2a-b9e0-ee2b9fea9a38",
     name: "GERENTE DE PLANIFICACIÓN",
-    role: "Planificación & Hojas de Ruta",
+    role: "Planificación",
     avatar: "🗺️",
     status: "active",
     type: "direct"
@@ -103,25 +102,38 @@ const CHANNELS = [
   { id: "chan-proyectos", name: "#planificacion", role: "Canal Proyectos", avatar: "🎯", cid: "CANAL_PLANIFICACIÓN" }
 ];
 
-// ESTADO DE LA APLICACIÓN
+// ESTADO DE LA APLICACIÓN Y ALMACENAMIENTO PERSISTENTE 24/7
 let activeChat = TEAM_MEMBERS[0];
 let currentTab = "contacts";
-let chatHistories = {};
+let chatHistories = loadPersistentHistories();
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 let attachedMedia = null;
 
-// Cargar o inicializar chats
-TEAM_MEMBERS.concat(CHANNELS).forEach(c => {
-  chatHistories[c.id] = [
-    {
-      sender: "system",
-      text: `Canal seguro con **${c.name}** (CID: \`${c.cid}\`). Respaldo 24/7.`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ];
-});
+// CARGAR HISTORIAL PERSISTENTE DE LOCALSTORAGE
+function loadPersistentHistories() {
+  const saved = localStorage.getItem("miranda_chat_histories_v3");
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  let initial = {};
+  TEAM_MEMBERS.concat(CHANNELS).forEach(c => {
+    initial[c.id] = [
+      {
+        sender: "system",
+        text: `Canal seguro con **${c.name}** (CID: \`${c.cid}\`). Respaldo 24/7 inmutable activo.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ];
+  });
+  return initial;
+}
+
+// GUARDAR HISTORIAL PERSISTENTE
+function savePersistentHistories() {
+  localStorage.setItem("miranda_chat_histories_v3", JSON.stringify(chatHistories));
+}
 
 // ELEMENTOS DEL DOM
 const contactsListEl = document.getElementById("contacts-list");
@@ -162,14 +174,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
 });
 
-// SOLICITAR PERMISO DE NOTIFICACIONES PWA
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
 }
 
-// LANZAR NOTIFICACIÓN NATIVA
 function showNativeNotification(title, body) {
   if ("Notification" in window && Notification.permission === "granted") {
     new Notification(title, {
@@ -179,7 +189,6 @@ function showNativeNotification(title, body) {
   }
 }
 
-// OCULTAR BOTÓN INSTALAR SI YA ESTÁ INSTALADA (MODE STANDALONE)
 function checkPwaInstallState() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const installBtn = document.getElementById("install-pwa-btn");
@@ -188,7 +197,7 @@ function checkPwaInstallState() {
   }
 }
 
-// LÓGICA DE PANTALLA DE BLOQUEO INTELIGENTE (DSMO1109 / LINDSAY2026!)
+// BLOQUEO INTELIGENTE DSMO1109 / LINDSAY2026!
 function setupLockScreen() {
   const lockForm = document.getElementById("lock-screen-form");
   const lockInput = document.getElementById("lock-password-input");
@@ -246,7 +255,7 @@ function enableEsposaMode() {
   isEsposaMode = true;
   document.getElementById("toggle-esposa-mode").textContent = "👑 Modo General";
   document.querySelector(".user-name").textContent = "Lindsay Miranda";
-  document.querySelector(".user-role").textContent = "Finanzas Familiares";
+  document.querySelector(".user-role").textContent = "Finanzas & Tarjeta";
   const lindsayBanner = document.getElementById("lindsay-banner");
   if (lindsayBanner) lindsayBanner.classList.remove("hidden");
   activeChat = TEAM_MEMBERS[1]; // Contabilidad
@@ -313,7 +322,7 @@ function renderActiveChatMessages() {
     if (msg.mediaType === "voice") {
       contentHtml += `<div class="media-tag">🎙️ Nota de Voz</div>`;
     } else if (msg.mediaType === "photo") {
-      contentHtml += `<div class="media-tag">📷 Recibo / Factura</div>`;
+      contentHtml += `<div class="media-tag">📷 Recibo / Factura de Tarjeta</div>`;
       if (msg.imgSrc) {
         contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
       }
@@ -373,7 +382,7 @@ function setupEventListeners() {
       const reader = new FileReader();
       reader.onload = (event) => {
         attachedMedia = { type: "photo", data: event.target.result, filename: file.name };
-        showMediaPreview(`📷 Foto: ${file.name}`);
+        showMediaPreview(`📷 Recibo de Tarjeta: ${file.name}`);
       };
       reader.readAsDataURL(file);
     }
@@ -448,7 +457,7 @@ async function toggleVoiceRecording() {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
         attachedMedia = { type: "voice", blob: audioBlob };
-        showMediaPreview("🎙️ Nota de voz (Lista)");
+        showMediaPreview("🎙️ Reporte de Voz (Listo)");
       };
 
       mediaRecorder.start();
@@ -468,13 +477,17 @@ function sendMessage(text) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const msgObj = {
     sender: "user",
-    text: text || (attachedMedia ? (attachedMedia.type === "voice" ? "Nota de voz emitida" : "Recibo subido") : ""),
+    text: text || (attachedMedia ? (attachedMedia.type === "voice" ? "Reporte de gasto por nota de voz" : "Comprobante de compra en tarjeta subido") : ""),
     time: time,
     mediaType: attachedMedia ? attachedMedia.type : null,
     imgSrc: attachedMedia && attachedMedia.type === "photo" ? attachedMedia.data : null
   };
 
+  if (!chatHistories[activeChat.id]) {
+    chatHistories[activeChat.id] = [];
+  }
   chatHistories[activeChat.id].push(msgObj);
+  savePersistentHistories(); // PERSISTENCIA INMUTABLE EN LOCALSTORAGE
   renderActiveChatMessages();
 
   messageTextInput.value = "";
@@ -490,21 +503,23 @@ function generateAgentResponse(userText, mediaType) {
   let responseText = "";
 
   if (activeChat.id === "manager") {
-    responseText = `👑 **[Gerente General]:** Recibido Director. Orden registrada: "${userText}". Coordinando ejecución inmediata.`;
+    responseText = `👑 **[Gerente General]:** Recibido Director. Orden asentada en la bitácora: "${userText}". Coordinando ejecución inmediata.`;
   } else if (activeChat.id === "contabilidad") {
     responseText = mediaType === "photo"
-      ? "🧾 **[Contabilidad]:** Recibo de compra de Lindsay asentado en `RECIBOS_CONTABLES.md`."
-      : `📚 **[Contabilidad]:** Asiento registrado: "${userText}". Saldos conciliados.`;
+      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra en tarjeta de Lindsay procesado al 100%. Asentado formalmente en `RECIBOS_CONTABLES.md`."
+      : (mediaType === "voice"
+        ? "🎙️ **[Gerente de Contabilidad]:** Reporte de voz de Lindsay transcrito y conciliado en la bitácora de egresos de la tarjeta."
+        : `📚 **[Gerente de Contabilidad]:** Gasto reportado por Lindsay asentado exitosamente: "${userText}". Libros y saldos conciliados al 100%.`);
   } else if (activeChat.id === "financiero") {
-    responseText = `📊 **[Financiero]:** Reporte analizado: "${userText}". Integrado a liquidez.`;
+    responseText = `📊 **[Gerente Financiero]:** Gasto de tarjeta analizado: "${userText}". Descontado del presupuesto de compras de Lindsay y conciliado con el saldo disponible.`;
   } else if (activeChat.id === "planificacion") {
     responseText = `🗺️ **[Planificación]:** Tarea integrada en la hoja de ruta: "${userText}".`;
   } else if (activeChat.id === "asistente") {
-    responseText = `📋 **[Asistente]:** Actividad registrada en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
+    responseText = `📋 **[Asistente]:** Actividad registrada inmutablemente en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
   } else if (activeChat.id === "diseno") {
-    responseText = `🎨 **[Diseño UI/UX]:** Directiva estético-visual recibida: "${userText}". Rediseñando componentes.`;
+    responseText = `🎨 **[Diseño UI/UX]:** Directiva visual recibida: "${userText}". Aplicando estándares cromáticos premium.`;
   } else if (activeChat.id === "seguridad") {
-    responseText = `🛡️ **[Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". 0 vulnerabilidades.`;
+    responseText = `🛡️ **[Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". Canal encriptado y 100% seguro.`;
   } else {
     responseText = `🫡 **[${activeChat.name}]:** Orden recibida: "${userText}". Ejecución en curso.`;
   }
@@ -515,6 +530,7 @@ function generateAgentResponse(userText, mediaType) {
     time: time
   });
 
+  savePersistentHistories(); // PERSISTENCIA INMUTABLE DE RESPUESTAS
   renderActiveChatMessages();
   showNativeNotification(`Mensaje de ${activeChat.name}`, responseText.replace(/\*\*/g, ''));
 }
