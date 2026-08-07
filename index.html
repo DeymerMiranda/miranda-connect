@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- CSS CRÍTICO EN LÍNEA PARA MÓVILES (EVITA DESTRUCTIVAMENTE CUALQUIER CACHÉ ANTERIOR) -->
+  <!-- CSS CRÍTICO EN LÍNEA PARA MÓVILES -->
   <style>
     html, body {
       background-color: #0b0f17 !important;
@@ -37,11 +37,11 @@
     .app-container.hidden { display: none !important; }
   </style>
 
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body class="dark-theme">
 
-  <!-- PANTALLA DE BLOQUEO CON FONDO 100% SÓLIDO Y AISLADO (Z-INDEX 9999999) -->
+  <!-- PANTALLA DE BLOQUEO CON FONDO 100% SÓLIDO -->
   <div class="lock-screen-overlay" id="initial-lock-screen">
     <div class="lock-screen-card">
       <div class="lock-icon">🔐</div>
@@ -134,29 +134,27 @@
         <!-- Mensajes renderizados aquí -->
       </div>
 
-      <!-- PANEL DE ENTRADA -->
+      <!-- BARRA DE ENTRADA ESTILO WHATSAPP (BOTONES GRANDES Y TÁCTILES) -->
       <footer class="chat-input-area">
         <div class="media-preview-bar hidden" id="media-preview-bar">
           <span id="preview-text"></span>
           <button class="close-preview" id="close-preview-btn">✕</button>
         </div>
 
-        <form class="input-form" id="chat-form">
-          <div class="attach-options">
-            <label class="attach-btn" title="Foto de Recibo/Ticket">
-              📷
-              <input type="file" id="photo-input" accept="image/*" style="display:none;">
-            </label>
-            <button type="button" class="record-btn" id="record-voice-btn" title="Nota de Voz">
-              🎙️
-            </button>
-          </div>
+        <form class="input-form whatsapp-style" id="chat-form">
+          <label class="action-circle-btn" title="Subir Recibo de Tarjeta">
+            📷
+            <input type="file" id="photo-input" accept="image/*" style="display:none;">
+          </label>
+          
+          <button type="button" class="action-circle-btn" id="record-voice-btn" title="Nota de Voz">
+            🎙️
+          </button>
 
-          <input type="text" id="message-text-input" placeholder="Escribe un reporte o instrucción..." autocomplete="off" required>
+          <input type="text" id="message-text-input" placeholder="Mensaje..." autocomplete="off" required>
 
-          <button type="submit" class="send-btn" id="send-msg-btn">
-            <span>Enviar</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <button type="submit" class="send-circle-btn" id="send-msg-btn" title="Enviar">
+            ➤
           </button>
         </form>
       </footer>
@@ -185,6 +183,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
