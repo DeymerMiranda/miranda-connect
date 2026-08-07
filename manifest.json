@@ -1,0 +1,16 @@
+{
+  "name": "EQUIPO MIRANDA - Consola 24/7",
+  "short_name": "Miranda Connect",
+  "description": "Mensajería Interna, Control de Cuentas y Tareas para la Empresa Personal de Deymer Miranda.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f17",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
