@@ -468,27 +468,33 @@ function sendMessage(text) {
   messageTextInput.value = "";
   clearMediaPreview();
 
-  // SIMULACIÓN DE RESPUESTA AUTOMÁTICA DEL AGENTE/GERENTE
+  // SIMULACIÓN DE RESPUESTA EN TIEMPO REAL DEL INTEGRANTE DE LA EMPRESA
   setTimeout(() => {
     generateAgentResponse(text, msgObj.mediaType);
-  }, 1200);
+  }, 1000);
 }
 
-// RESPUESTA INTELIGENTE SEGÚN EL RECEPTOR
+// RESPUESTA INTELIGENTE Y PERSONALIZADA DE CADA GERENTE / TRABAJADOR
 function generateAgentResponse(userText, mediaType) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   let responseText = "";
 
-  if (activeChat.id === "contabilidad") {
+  if (activeChat.id === "manager") {
+    responseText = `👑 **[Gerente General]:** Recibido Director Deymer. He tomado nota de tu instrucción: "${userText}". Asignando la orden inmediatamente al departamento correspondiente en la bitácora.`;
+  } else if (activeChat.id === "contabilidad") {
     responseText = mediaType === "photo"
-      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra de Lindsay procesado exitosamente. Asentado en `RECIBOS_CONTABLES.md`."
-      : "📚 **[Gerente de Contabilidad]:** Asiento registrado en `Finanzas_Personales_Deymer.md`. Saldos conciliados al 100%.";
+      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra de Lindsay procesado exitosamente. Asentado en el Libro Diario `RECIBOS_CONTABLES.md`."
+      : `📚 **[Gerente de Contabilidad]:** Registro financiero procesado: "${userText}". Saldos conciliados al 100% en la bitácora contable.`;
   } else if (activeChat.id === "financiero") {
-    responseText = "📊 **[Gerente Financiero]:** Reporte analizado. Integrado al cálculo de liquidez y presupuesto mensual de Deymer.";
+    responseText = `📊 **[Gerente Financiero]:** Reporte analizado: "${userText}". Integrado al cálculo de liquidez y presupuesto mensual de Deymer.`;
   } else if (activeChat.id === "planificacion") {
-    responseText = "🗺️ **[Gerente de Planificación]:** Tarea y cronograma actualizados en `ROADMAP_WHATSAPP_BOT.md`.";
+    responseText = `🗺️ **[Gerente de Planificación]:** Tarea y cronograma actualizados para: "${userText}". Se consulta e integra en el plan maestro.`;
+  } else if (activeChat.id === "asistente") {
+    responseText = `📋 **[Asistente de Gerencia]:** Actividad registrada minuciosamente en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
+  } else if (activeChat.id === "seguridad") {
+    responseText = `🛡️ **[Gerente de Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". 0 vulnerabilidades detectadas, canal encriptado y seguro.`;
   } else {
-    responseText = `🫡 **[${activeChat.name}]:** Orden recibida. Tarea registrada y lista para ejecución inmediata según directivas de Deymer.`;
+    responseText = `🫡 **[${activeChat.name}]:** Orden recibida: "${userText}". Tarea en ejecución inmediata según directivas de Deymer.`;
   }
 
   chatHistories[activeChat.id].push({
