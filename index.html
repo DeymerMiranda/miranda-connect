@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MIRANDA CONNECT | WhatsApp 1:1 24/7</title>
-  <meta name="description" content="Consola de comunicación y gestión 24/7 para el Equipo Miranda estilo WhatsApp.">
+  <title>EQUIPO MIRANDA | Consola de Control 24/7</title>
+  <meta name="description" content="Consola de comunicación y gestión 24/7 para el Equipo Miranda.">
   <meta name="theme-color" content="#202c33">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- CSS CRÍTICO EN LÍNEA PARA MÓVILES -->
+  <!-- CSS CRÍTICO EN LÍNEA -->
   <style>
     html, body {
       background-color: #0b141a !important;
@@ -35,21 +35,22 @@
     }
     .lock-screen-overlay.hidden { display: none !important; }
     .app-container.hidden { display: none !important; }
+    #media-preview-bar { display: none !important; }
   </style>
 
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body class="dark-theme">
 
-  <!-- PANTALLA DE BLOQUEO WHATSAPP (Z-INDEX 9999999) -->
+  <!-- PANTALLA DE BLOQUEO (Z-INDEX 9999999) -->
   <div class="lock-screen-overlay" id="initial-lock-screen">
     <div class="lock-screen-card">
       <div class="lock-icon">🔐</div>
-      <h2>MIRANDA CONNECT</h2>
-      <p>Protegido con Cifrado Extremo a Extremo</p>
+      <h2>EQUIPO MIRANDA 24/7</h2>
+      <p>Acceso Seguro Protegido por Contraseña</p>
       <form id="lock-screen-form">
         <input type="password" id="lock-password-input" placeholder="Ingrese su contraseña..." required autofocus autocomplete="current-password">
-        <button type="submit" class="btn-primary-lock">Ingresar a WhatsApp</button>
+        <button type="submit" class="btn-primary-lock">Ingresar a la Consola</button>
       </form>
       <span class="lock-error hidden" id="lock-error-msg">⚠️ Contraseña incorrecta. Intente nuevamente.</span>
     </div>
@@ -58,13 +59,13 @@
   <!-- CONTENEDOR DE LA APP OCULTO HASTA DESBLOQUEAR (#app.hidden) -->
   <div id="app" class="app-container hidden">
 
-    <!-- BARRA LATERAL ESTILO WHATSAPP WEB -->
+    <!-- BARRA LATERAL ESTILO EQUIPO MIRANDA -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand">
-          <div class="brand-icon">💬</div>
+          <div class="brand-icon">👑</div>
           <div class="brand-info">
-            <h1>WhatsApp Miranda</h1>
+            <h1>EQUIPO MIRANDA</h1>
             <span class="badge-status online">● En Línea 24/7</span>
           </div>
         </div>
@@ -94,7 +95,7 @@
 
     <!-- ÁREA PRINCIPAL DE CHAT -->
     <main class="chat-area" id="chat-area">
-      <!-- HEADER TIPO WHATSAPP MOBILE -->
+      <!-- HEADER MOBILE -->
       <header class="chat-header">
         <button class="mobile-toggle" id="mobile-sidebar-toggle">☰</button>
         <div class="active-contact-info" id="active-contact-header">
@@ -126,7 +127,7 @@
 
       <!-- HISTORIAL DE MENSAJES DE CHAT -->
       <div class="messages-container" id="messages-container">
-        <!-- Mensajes tipo WhatsApp renderizados aquí -->
+        <!-- Mensajes renderizados aquí -->
       </div>
 
       <!-- BARRA DE GRABACIÓN DE AUDIO ACTIVA -->
@@ -137,13 +138,8 @@
         <button type="button" class="cancel-rec-btn" id="cancel-rec-btn">Cancelar</button>
       </div>
 
-      <!-- BARRA DE ENTRADA ESTILO WHATSAPP 1:1 -->
+      <!-- BARRA DE ENTRADA LIMPIA (SIN EL ICONO [X] FLOTANTE) -->
       <footer class="chat-input-area">
-        <div class="media-preview-bar hidden" id="media-preview-bar">
-          <span id="preview-text"></span>
-          <button class="close-preview" id="close-preview-btn">✕</button>
-        </div>
-
         <form class="input-form whatsapp-1to1" id="chat-form">
           <label class="attach-circle-btn" title="Adjuntar Recibo de Tarjeta">
             📎
@@ -165,6 +161,6 @@
 
   </div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
