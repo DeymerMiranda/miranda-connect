@@ -1,5 +1,5 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WHATSAPP 1:1 EXACT DESIGN SYSTEM & STYLES (v9)
+   EQUIPO MIRANDA - WHATSAPP 1:1 EXACT DESIGN SYSTEM & STYLES (v11)
    Fondo #0b141a | Enviadas #005c4b | Recibidas #202c33 | Entrada #202c33
    ========================================================================== */
 
@@ -94,51 +94,11 @@ body {
 .lock-error { display: block; font-size: 0.8rem; color: #f15c6d; margin-top: 10px; }
 .lock-error.hidden { display: none !important; }
 
-/* MODAL DE CONFIGURACIÓN WHATSAPP */
-.modal-overlay {
-  position: fixed !important;
-  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-  width: 100vw !important; height: 100vh !important;
-  background-color: rgba(0,0,0,0.85) !important;
-  z-index: 9999999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+/* OCULTAR COMPLETAMENTE CUALQUIER BARRA O BOTON [X] ROTO */
+#media-preview-bar, .media-preview-bar {
+  display: none !important;
 }
 
-.modal-overlay.hidden { display: none !important; }
-
-.modal-content {
-  width: 90%;
-  max-width: 400px;
-  background: var(--wa-header-bg);
-  border: 1px solid var(--wa-border);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.9);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--wa-border);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.modal-header h2 { font-size: 1.1rem; color: #fff; }
-.modal-close { background: transparent; border: none; color: var(--wa-text-muted); font-size: 1.2rem; cursor: pointer; }
-
-.modal-body label { display: block; margin-bottom: 12px; font-size: 0.85rem; color: var(--wa-text-primary); }
-.modal-body input { width: 100%; height: 40px; background: #111b21; border: 1px solid var(--wa-border); border-radius: 8px; padding: 0 12px; color: #fff; margin-top: 6px; outline: none; }
-.modal-note { font-size: 0.78rem; color: var(--wa-text-muted); margin-top: 10px; line-height: 1.4; }
-
-.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-.btn-secondary { background: transparent; border: 1px solid var(--wa-border); color: var(--wa-text-muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-.btn-primary { background: var(--wa-teal); border: none; color: #fff; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-
-/* APP LAYOUT */
 .app-container.hidden { display: none !important; }
 
 .app-container {
@@ -171,7 +131,6 @@ body {
 .brand-icon { font-size: 1.3rem; }
 .brand-info h1 { font-size: 1rem; font-weight: 700; color: #fff; }
 .badge-status.online { font-size: 0.7rem; color: var(--wa-teal); }
-.settings-btn { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--wa-text-muted); }
 
 .sidebar-tabs { display: flex; background: var(--wa-header-bg); padding: 4px 8px; border-bottom: 1px solid var(--wa-border); }
 .tab-btn { flex: 1; padding: 8px; background: transparent; border: none; color: var(--wa-text-muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; }
@@ -313,7 +272,7 @@ body {
 .rec-label { flex: 1; font-size: 0.85rem; color: var(--wa-text-muted); }
 .cancel-rec-btn { background: transparent; border: 1px solid #f15c6d; color: #f15c6d; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; }
 
-/* BARRA DE ENTRADA TIPO WHATSAPP 1:1 (BOTONES TÁCTILES 44PX) */
+/* BARRA DE ENTRADA TIPO WHATSAPP (BOTONES TÁCTILES ALINEADOS DE 44PX) */
 .chat-input-area {
   padding: 10px 12px;
   background: var(--wa-input-bar-bg);
