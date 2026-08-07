@@ -35,20 +35,9 @@
     }
     .lock-screen-overlay.hidden { display: none !important; }
     .app-container.hidden { display: none !important; }
-    .modal-overlay {
-      position: fixed !important;
-      top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-      width: 100vw !important; height: 100vh !important;
-      background-color: rgba(0,0,0,0.85) !important;
-      z-index: 9999999 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
-    .modal-overlay.hidden { display: none !important; }
   </style>
 
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body class="dark-theme">
 
@@ -66,27 +55,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIGURACIÓN FUERA DEL CONTENEDOR PRINCIPAL PARA GARANTIZAR APERTURA 100% -->
-  <div class="modal-overlay hidden" id="settings-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>⚙️ Ajustes de WhatsApp</h2>
-        <button class="modal-close" id="close-settings-btn">✕</button>
-      </div>
-      <div class="modal-body">
-        <label>
-          <strong>Contraseña de Acceso:</strong>
-          <input type="password" id="cfg-app-password" value="Dsmo1109">
-        </label>
-        <p class="modal-note">💡 Respaldo automático 24/7 de audios, fotos de recibos y mensajes en la nube.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" id="cancel-settings-btn">Cancelar</button>
-        <button class="btn-primary" id="save-settings-btn">Guardar Cambios</button>
-      </div>
-    </div>
-  </div>
-
   <!-- CONTENEDOR DE LA APP OCULTO HASTA DESBLOQUEAR (#app.hidden) -->
   <div id="app" class="app-container hidden">
 
@@ -100,7 +68,6 @@
             <span class="badge-status online">● En Línea 24/7</span>
           </div>
         </div>
-        <button class="settings-btn" id="open-settings-btn" title="Ajustes de WhatsApp">⚙️</button>
       </div>
 
       <!-- PESTAÑAS -->
@@ -127,7 +94,7 @@
 
     <!-- ÁREA PRINCIPAL DE CHAT -->
     <main class="chat-area" id="chat-area">
-      <!-- HEADER HEADER TIPO WHATSAPP MOBILE -->
+      <!-- HEADER TIPO WHATSAPP MOBILE -->
       <header class="chat-header">
         <button class="mobile-toggle" id="mobile-sidebar-toggle">☰</button>
         <div class="active-contact-info" id="active-contact-header">
@@ -198,6 +165,6 @@
 
   </div>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
