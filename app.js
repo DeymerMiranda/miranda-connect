@@ -1,6 +1,5 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v4
-   Notificaciones de Gastos de Lindsay en Tiempo Real para Deymer
+   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v5 (LOCK ISOLATION FIX)
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -111,7 +110,7 @@ let isRecording = false;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v4");
+  const saved = localStorage.getItem("miranda_chat_histories_v5");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -129,7 +128,7 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v4", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v5", JSON.stringify(chatHistories));
 }
 
 const contactsListEl = document.getElementById("contacts-list");
@@ -192,16 +191,19 @@ function checkPwaInstallState() {
   }
 }
 
+// LÓGICA DE BLOQUEO CON DESBLOQUEO DE #app
 function setupLockScreen() {
   const lockForm = document.getElementById("lock-screen-form");
   const lockInput = document.getElementById("lock-password-input");
   const lockOverlay = document.getElementById("initial-lock-screen");
   const lockError = document.getElementById("lock-error-msg");
+  const appContainer = document.getElementById("app");
 
   if (!lockForm) return;
 
   if (sessionStorage.getItem("unlocked_miranda") === "true") {
     if (lockOverlay) lockOverlay.classList.add("hidden");
+    if (appContainer) appContainer.classList.remove("hidden");
     return;
   }
 
@@ -212,12 +214,14 @@ function setupLockScreen() {
     if (pass === "Dsmo1109" || pass === "Deymer2026!") {
       sessionStorage.setItem("unlocked_miranda", "true");
       lockOverlay.classList.add("hidden");
+      if (appContainer) appContainer.classList.remove("hidden");
     } else if (pass === "Lindsay2026!") {
       sessionStorage.setItem("unlocked_miranda", "true");
       enableEsposaMode();
       renderSidebarList();
       selectActiveChat(activeChat);
       lockOverlay.classList.add("hidden");
+      if (appContainer) appContainer.classList.remove("hidden");
     } else {
       lockError.classList.remove("hidden");
     }
@@ -227,7 +231,6 @@ function setupLockScreen() {
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").then((reg) => {
-      // Auto-actualizar silenciosamente si hay nueva versión
       reg.onupdatefound = () => {
         const installingWorker = reg.installing;
         installingWorker.onstatechange = () => {
@@ -264,7 +267,7 @@ function enableEsposaMode() {
   document.querySelector(".user-role").textContent = "Finanzas & Tarjeta";
   const lindsayBanner = document.getElementById("lindsay-banner");
   if (lindsayBanner) lindsayBanner.classList.remove("hidden");
-  activeChat = TEAM_MEMBERS[1]; // Contabilidad
+  activeChat = TEAM_MEMBERS[1];
 }
 
 function renderSidebarList() {
@@ -287,7 +290,6 @@ function renderSidebarList() {
     card.innerHTML = `
       <div class="contact-avatar">
         ${item.avatar}
-        <span class="status-dot ${item.status === 'active' ? 'active' : 'busy'}"></span>
       </div>
       <div class="contact-details">
         <div class="contact-name-row">
@@ -328,7 +330,7 @@ function renderActiveChatMessages() {
     if (msg.mediaType === "voice") {
       contentHtml += `<div class="media-tag">🎙️ Nota de Voz</div>`;
     } else if (msg.mediaType === "photo") {
-      contentHtml += `<div class="media-tag">📷 Recibo / Factura de Tarjeta</div>`;
+      contentHtml += `<div class="media-tag">📷 Recibo de Tarjeta</div>`;
       if (msg.imgSrc) {
         contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
       }
@@ -388,7 +390,7 @@ function setupEventListeners() {
       const reader = new FileReader();
       reader.onload = (event) => {
         attachedMedia = { type: "photo", data: event.target.result, filename: file.name };
-        showMediaPreview(`📷 Recibo de Tarjeta: ${file.name}`);
+        showMediaPreview(`📷 Recibo: ${file.name}`);
       };
       reader.readAsDataURL(file);
     }
@@ -421,7 +423,7 @@ function setupEventListeners() {
         isEsposaMode = false;
         toggleEsposaBtn.textContent = "👩‍💼 Modo Esposa";
         document.querySelector(".user-name").textContent = "Deymer Miranda";
-        document.querySelector(".user-role").textContent = "Propietario & Director";
+        document.querySelector(".user-role").textContent = "Director General";
         if (lindsayBanner) lindsayBanner.classList.add("hidden");
         activeChat = TEAM_MEMBERS[0];
       } else {
@@ -436,7 +438,7 @@ function setupEventListeners() {
   closeSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
   cancelSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
   saveSettingsBtn.onclick = () => {
-    alert("✅ Ajustes guardados con éxito.");
+    alert("✅ Ajustes guardados.");
     settingsModal.classList.add("hidden");
   };
 }
@@ -463,7 +465,7 @@ async function toggleVoiceRecording() {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
         attachedMedia = { type: "voice", blob: audioBlob };
-        showMediaPreview("🎙️ Reporte de Voz (Listo)");
+        showMediaPreview("🎙️ Reporte de Voz");
       };
 
       mediaRecorder.start();
@@ -483,7 +485,7 @@ function sendMessage(text) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const msgObj = {
     sender: "user",
-    text: text || (attachedMedia ? (attachedMedia.type === "voice" ? "Reporte de gasto por nota de voz" : "Comprobante de compra en tarjeta subido") : ""),
+    text: text || (attachedMedia ? (attachedMedia.type === "voice" ? "Reporte de gasto por nota de voz" : "Comprobante de compra subido") : ""),
     time: time,
     mediaType: attachedMedia ? attachedMedia.type : null,
     imgSrc: attachedMedia && attachedMedia.type === "photo" ? attachedMedia.data : null
@@ -496,7 +498,6 @@ function sendMessage(text) {
   savePersistentHistories();
   renderActiveChatMessages();
 
-  // SI ES MODO ESPOSA (LINDSAY), NOTIFICAR AUTOMÁTICAMENTE A DEYMER
   if (isEsposaMode) {
     notifyDeymerAboutLindsayExpense(msgObj);
   }
@@ -509,19 +510,16 @@ function sendMessage(text) {
   }, 900);
 }
 
-// ALERTA DE GASTO EN TIEMPO REAL PARA DEYMER
 function notifyDeymerAboutLindsayExpense(msgObj) {
   const alertTitle = "💳 ¡ALERTA DE GASTO EN TARJETA!";
   const alertBody = `Lindsay reportó un nuevo gasto: ${msgObj.text}`;
   
-  // Notificación Nativa Push en Pantalla
   showNativeNotification(alertTitle, alertBody);
 
-  // Registrar en el chat del Manager (Deymer)
   if (!chatHistories["manager"]) chatHistories["manager"] = [];
   chatHistories["manager"].push({
     sender: "system",
-    text: `🔔 **[ALERTA EN TIEMPO REAL PARA DEYMER]:** Lindsay acaba de registrar un gasto en la tarjeta: "${msgObj.text}". Enviado a Contabilidad.`,
+    text: `🔔 **[ALERTA DE GASTO PARA DEYMER]:** Lindsay acaba de registrar un gasto de tarjeta: "${msgObj.text}". Asentado en Contabilidad.`,
     time: msgObj.time
   });
   savePersistentHistories();
@@ -532,25 +530,25 @@ function generateAgentResponse(userText, mediaType) {
   let responseText = "";
 
   if (activeChat.id === "manager") {
-    responseText = `👑 **[Gerente General]:** Recibido Director. Orden asentada en la bitácora: "${userText}". Coordinando ejecución inmediata.`;
+    responseText = `👑 **[Gerente General]:** Recibido Director. Orden asentada: "${userText}". Ejecutando.`;
   } else if (activeChat.id === "contabilidad") {
     responseText = mediaType === "photo"
-      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra en tarjeta de Lindsay procesado al 100%. Asentado formalmente en `RECIBOS_CONTABLES.md` y notificado a Deymer."
+      ? "🧾 **[Contabilidad]:** Recibo de compra de Lindsay asentado en `RECIBOS_CONTABLES.md`."
       : (mediaType === "voice"
-        ? "🎙️ **[Gerente de Contabilidad]:** Reporte de voz de Lindsay transcrito y conciliado en la bitácora. Notificación enviada a Deymer."
-        : `📚 **[Gerente de Contabilidad]:** Gasto de tarjeta asentado exitosamente: "${userText}". Libros y saldos conciliados al 100%.`);
+        ? "🎙️ **[Contabilidad]:** Nota de voz de Lindsay transcrita y conciliada."
+        : `📚 **[Contabilidad]:** Gasto de tarjeta asentado: "${userText}". Saldos conciliados.`);
   } else if (activeChat.id === "financiero") {
-    responseText = `📊 **[Gerente Financiero]:** Gasto de tarjeta analizado: "${userText}". Descontado del presupuesto de compras de Lindsay y conciliado con el saldo disponible.`;
+    responseText = `📊 **[Financiero]:** Gasto analizado: "${userText}". Descontado del presupuesto de Lindsay.`;
   } else if (activeChat.id === "planificacion") {
-    responseText = `🗺️ **[Planificación]:** Tarea integrada en la hoja de ruta: "${userText}".`;
+    responseText = `🗺️ **[Planificación]:** Tarea integrada en el plan: "${userText}".`;
   } else if (activeChat.id === "asistente") {
-    responseText = `📋 **[Asistente]:** Actividad registrada inmutablemente en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
+    responseText = `📋 **[Asistente]:** Registrado en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
   } else if (activeChat.id === "diseno") {
-    responseText = `🎨 **[Diseño UI/UX]:** Directiva visual recibida: "${userText}". Aplicando estándares cromáticos premium.`;
+    responseText = `🎨 **[Diseño UI/UX]:** Directiva visual procesada: "${userText}". Componentes corregidos.`;
   } else if (activeChat.id === "seguridad") {
-    responseText = `🛡️ **[Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". Canal encriptado y 100% seguro.`;
+    responseText = `🛡️ **[Seguridad]:** Auditado bajo Ley 3: "${userText}". 0 vulnerabilidades.`;
   } else {
-    responseText = `🫡 **[${activeChat.name}]:** Orden recibida: "${userText}". Ejecución en curso.`;
+    responseText = `🫡 **[${activeChat.name}]:** Orden recibida: "${userText}". Ejecutando.`;
   }
 
   chatHistories[activeChat.id].push({
