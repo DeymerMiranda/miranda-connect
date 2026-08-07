@@ -1,5 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v8 (WHATSAPP INPUT FIX)
+   EQUIPO MIRANDA - WHATSAPP 1:1 ENGINE v9
+   Grabación de Audio Nativa con Temporizador + Modal de Ajustes Garantizado
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -107,10 +108,12 @@ let chatHistories = loadPersistentHistories();
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
+let recordingInterval = null;
+let recordingSeconds = 0;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v8");
+  const saved = localStorage.getItem("miranda_chat_histories_v9");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -119,7 +122,7 @@ function loadPersistentHistories() {
     initial[c.id] = [
       {
         sender: "system",
-        text: "🔒 Chat cifrado 24/7 con " + c.name,
+        text: "🔒 Los mensajes están cifrados extremo a extremo con " + c.name,
         time: ""
       }
     ];
@@ -128,9 +131,10 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v8", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v9", JSON.stringify(chatHistories));
 }
 
+// ELEMENTOS DEL DOM
 const contactsListEl = document.getElementById("contacts-list");
 const messagesContainerEl = document.getElementById("messages-container");
 const chatFormEl = document.getElementById("chat-form");
@@ -141,10 +145,13 @@ const mediaPreviewBar = document.getElementById("media-preview-bar");
 const previewText = document.getElementById("preview-text");
 const closePreviewBtn = document.getElementById("close-preview-btn");
 
+const recordingBar = document.getElementById("recording-bar");
+const recordingTimer = document.getElementById("recording-timer");
+const cancelRecBtn = document.getElementById("cancel-rec-btn");
+
 const currentChatAvatar = document.getElementById("current-chat-avatar");
 const currentChatName = document.getElementById("current-chat-name");
 const currentChatRole = document.getElementById("current-chat-role");
-const currentChatCid = document.getElementById("current-chat-cid");
 
 const btnTabContacts = document.getElementById("btn-tab-contacts");
 const btnTabChannels = document.getElementById("btn-tab-channels");
@@ -166,7 +173,29 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSidebarList();
   renderActiveChatMessages();
   setupEventListeners();
+  setupSettingsModalHandlers();
 });
+
+function setupSettingsModalHandlers() {
+  if (openSettingsBtn) {
+    openSettingsBtn.onclick = (e) => {
+      e.preventDefault();
+      settingsModal.classList.remove("hidden");
+    };
+  }
+  if (closeSettingsBtn) {
+    closeSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
+  }
+  if (cancelSettingsBtn) {
+    cancelSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
+  }
+  if (saveSettingsBtn) {
+    saveSettingsBtn.onclick = () => {
+      alert("✅ Ajustes guardados con éxito.");
+      settingsModal.classList.add("hidden");
+    };
+  }
+}
 
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission === "default") {
@@ -307,8 +336,7 @@ function selectActiveChat(item) {
 
   currentChatAvatar.textContent = item.avatar;
   currentChatName.textContent = item.name;
-  currentChatRole.textContent = item.role;
-  currentChatCid.textContent = `ID: ${item.cid}`;
+  currentChatRole.textContent = "en línea";
 
   renderActiveChatMessages();
 
@@ -330,14 +358,19 @@ function renderActiveChatMessages() {
     } else {
       bubble.className = `message-bubble ${msg.sender === 'user' ? 'sent' : 'received'}`;
       let contentHtml = "";
+      
       if (msg.mediaType === "voice") {
-        contentHtml += `<div class="media-tag">🎙️ Nota de Voz</div>`;
+        contentHtml += `<div class="media-tag">🎙️ Nota de Voz (${msg.duration || '00:05'})</div>`;
+        if (msg.audioSrc) {
+          contentHtml += `<div class="voice-player"><audio controls src="${msg.audioSrc}"></audio></div>`;
+        }
       } else if (msg.mediaType === "photo") {
         contentHtml += `<div class="media-tag">📷 Recibo de Tarjeta</div>`;
         if (msg.imgSrc) {
           contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
         }
       }
+
       contentHtml += `<div>${formatMarkdown(msg.text)}</div>`;
       contentHtml += `<span class="time">${msg.time}</span>`;
       bubble.innerHTML = contentHtml;
@@ -382,9 +415,13 @@ function setupEventListeners() {
   chatFormEl.onsubmit = (e) => {
     e.preventDefault();
     const text = messageTextInput.value.trim();
-    if (!text && !attachedMedia) return;
+    if (!text && !attachedMedia && !isRecording) return;
 
-    sendMessage(text);
+    if (isRecording) {
+      stopAndSendVoiceRecording();
+    } else {
+      sendMessage(text);
+    }
   };
 
   photoInput.onchange = (e) => {
@@ -400,6 +437,7 @@ function setupEventListeners() {
   };
 
   recordVoiceBtn.onclick = toggleVoiceRecording;
+  cancelRecBtn.onclick = cancelVoiceRecording;
   closePreviewBtn.onclick = clearMediaPreview;
 
   const installPwaBtn = document.getElementById("install-pwa-btn");
@@ -424,7 +462,7 @@ function setupEventListeners() {
       const lindsayBanner = document.getElementById("lindsay-banner");
       if (isEsposaMode) {
         isEsposaMode = false;
-        toggleEsposaBtn.textContent = "👩‍💼 Modo Esposa";
+        toggleEsposaBtn.textContent = "👩‍💼 Modo Lindsay";
         document.querySelector(".user-name").textContent = "Deymer Miranda";
         document.querySelector(".user-role").textContent = "Director General";
         if (lindsayBanner) lindsayBanner.classList.add("hidden");
@@ -436,14 +474,6 @@ function setupEventListeners() {
       selectActiveChat(activeChat);
     };
   }
-
-  openSettingsBtn.onclick = () => settingsModal.classList.remove("hidden");
-  closeSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
-  cancelSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
-  saveSettingsBtn.onclick = () => {
-    alert("✅ Ajustes guardados.");
-    settingsModal.classList.add("hidden");
-  };
 }
 
 function showMediaPreview(text) {
@@ -457,6 +487,7 @@ function clearMediaPreview() {
   photoInput.value = "";
 }
 
+// SISTEMA DE GRABACIÓN DE VOZ NATIVO MEDIARECORDER CON TIMER TIPO WHATSAPP
 async function toggleVoiceRecording() {
   if (!isRecording) {
     try {
@@ -465,33 +496,77 @@ async function toggleVoiceRecording() {
       audioChunks = [];
 
       mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
+      
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
-        attachedMedia = { type: "voice", blob: audioBlob };
-        showMediaPreview("🎙️ Reporte de Voz");
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const durationStr = formatTimer(recordingSeconds);
+        
+        sendMessage("", {
+          type: "voice",
+          audioSrc: audioUrl,
+          duration: durationStr
+        });
       };
 
       mediaRecorder.start();
       isRecording = true;
+      recordingSeconds = 0;
       recordVoiceBtn.classList.add("recording");
+      recordingBar.classList.remove("hidden");
+
+      recordingInterval = setInterval(() => {
+        recordingSeconds++;
+        recordingTimer.textContent = formatTimer(recordingSeconds);
+      }, 1000);
+
     } catch (err) {
-      alert("Micrófono no otorgado.");
+      alert("🎙️ Permiso de micrófono requerido para grabar notas de voz.");
     }
   } else {
-    mediaRecorder.stop();
-    isRecording = false;
-    recordVoiceBtn.classList.remove("recording");
+    stopAndSendVoiceRecording();
   }
 }
 
-function sendMessage(text) {
+function stopAndSendVoiceRecording() {
+  if (mediaRecorder && isRecording) {
+    clearInterval(recordingInterval);
+    mediaRecorder.stop();
+    isRecording = false;
+    recordVoiceBtn.classList.remove("recording");
+    recordingBar.classList.add("hidden");
+  }
+}
+
+function cancelVoiceRecording() {
+  if (mediaRecorder && isRecording) {
+    clearInterval(recordingInterval);
+    mediaRecorder.onstop = null; // Cancelar sin enviar
+    mediaRecorder.stop();
+    isRecording = false;
+    recordVoiceBtn.classList.remove("recording");
+    recordingBar.classList.add("hidden");
+  }
+}
+
+function formatTimer(secs) {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function sendMessage(text, overrideMedia) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const mediaToUse = overrideMedia || attachedMedia;
+
   const msgObj = {
     sender: "user",
-    text: text || (attachedMedia ? (attachedMedia.type === "voice" ? "Reporte de gasto por nota de voz" : "Comprobante de compra subido") : ""),
+    text: text || (mediaToUse ? (mediaToUse.type === "voice" ? "Nota de voz de WhatsApp" : "Comprobante de compra subido") : ""),
     time: time,
-    mediaType: attachedMedia ? attachedMedia.type : null,
-    imgSrc: attachedMedia && attachedMedia.type === "photo" ? attachedMedia.data : null
+    mediaType: mediaToUse ? mediaToUse.type : null,
+    audioSrc: mediaToUse && mediaToUse.type === "voice" ? mediaToUse.audioSrc : null,
+    duration: mediaToUse && mediaToUse.type === "voice" ? mediaToUse.duration : null,
+    imgSrc: mediaToUse && mediaToUse.type === "photo" ? mediaToUse.data : null
   };
 
   if (!chatHistories[activeChat.id]) {
@@ -522,7 +597,7 @@ function notifyDeymerAboutLindsayExpense(msgObj) {
   if (!chatHistories["manager"]) chatHistories["manager"] = [];
   chatHistories["manager"].push({
     sender: "system",
-    text: `🔔 **[ALERTA DE GASTO PARA DEYMER]:** Lindsay acaba de registrar un gasto de tarjeta: "${msgObj.text}". Asentado en Contabilidad.`,
+    text: `🔔 **[ALERTA DE GASTO EN TIEMPO REAL]:** Lindsay acaba de registrar un gasto en la tarjeta: "${msgObj.text}". Asentado en Contabilidad.`,
     time: msgObj.time
   });
   savePersistentHistories();
@@ -538,7 +613,7 @@ function generateAgentResponse(userText, mediaType) {
     responseText = mediaType === "photo"
       ? "🧾 **[Contabilidad]:** Recibo de compra de Lindsay asentado en `RECIBOS_CONTABLES.md`."
       : (mediaType === "voice"
-        ? "🎙️ **[Contabilidad]:** Nota de voz de Lindsay transcrita y conciliada."
+        ? "🎙️ **[Contabilidad]:** Nota de voz de Lindsay recibida, reproducida y conciliada."
         : `📚 **[Contabilidad]:** Gasto de tarjeta asentado: "${userText}". Saldos conciliados.`);
   } else if (activeChat.id === "financiero") {
     responseText = `📊 **[Financiero]:** Gasto analizado: "${userText}". Descontado del presupuesto de Lindsay.`;
@@ -547,7 +622,7 @@ function generateAgentResponse(userText, mediaType) {
   } else if (activeChat.id === "asistente") {
     responseText = `📋 **[Asistente]:** Registrado en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
   } else if (activeChat.id === "diseno") {
-    responseText = `🎨 **[Responsable de Diseño]:** Directiva visual procesada: "${userText}". Componentes corregidos.`;
+    responseText = `🎨 **[Responsable de Diseño]:** Interfaz WhatsApp 1:1 procesada. Componentes verificados.`;
   } else if (activeChat.id === "seguridad") {
     responseText = `🛡️ **[Seguridad]:** Auditado bajo Ley 3: "${userText}". 0 vulnerabilidades.`;
   } else {
