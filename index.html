@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EQUIPO MIRANDA | Consola de Control 24/7</title>
-  <meta name="description" content="Plataforma de mensajería interna, control de personal, finanzas y tareas 24/7 para el Equipo Miranda.">
-  <meta name="theme-color" content="#0b0f17">
+  <title>MIRANDA CONNECT | WhatsApp 1:1 24/7</title>
+  <meta name="description" content="Consola de comunicación y gestión 24/7 para el Equipo Miranda estilo WhatsApp.">
+  <meta name="theme-color" content="#202c33">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,8 @@
   <!-- CSS CRÍTICO EN LÍNEA PARA MÓVILES -->
   <style>
     html, body {
-      background-color: #0b0f17 !important;
-      background: #0b0f17 !important;
+      background-color: #0b141a !important;
+      background: #0b141a !important;
       margin: 0 !important;
       padding: 0 !important;
       height: 100vh !important;
@@ -25,8 +25,8 @@
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       width: 100vw !important; height: 100vh !important;
-      background-color: #0b0f17 !important;
-      background: #0b0f17 !important;
+      background-color: #0b141a !important;
+      background: #0b141a !important;
       opacity: 1 !important;
       z-index: 9999999 !important;
       display: flex !important;
@@ -35,54 +35,81 @@
     }
     .lock-screen-overlay.hidden { display: none !important; }
     .app-container.hidden { display: none !important; }
+    .modal-overlay {
+      position: fixed !important;
+      top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+      width: 100vw !important; height: 100vh !important;
+      background-color: rgba(0,0,0,0.85) !important;
+      z-index: 9999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .modal-overlay.hidden { display: none !important; }
   </style>
 
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body class="dark-theme">
 
-  <!-- PANTALLA DE BLOQUEO CON FONDO 100% SÓLIDO -->
+  <!-- PANTALLA DE BLOQUEO WHATSAPP (Z-INDEX 9999999) -->
   <div class="lock-screen-overlay" id="initial-lock-screen">
     <div class="lock-screen-card">
       <div class="lock-icon">🔐</div>
-      <h2>EQUIPO MIRANDA 24/7</h2>
-      <p>Acceso Seguro Protegido por Contraseña</p>
+      <h2>MIRANDA CONNECT</h2>
+      <p>Protegido con Cifrado Extremo a Extremo</p>
       <form id="lock-screen-form">
         <input type="password" id="lock-password-input" placeholder="Ingrese su contraseña..." required autofocus autocomplete="current-password">
-        <button type="submit" class="btn-primary-lock">Desbloquear App</button>
+        <button type="submit" class="btn-primary-lock">Ingresar a WhatsApp</button>
       </form>
       <span class="lock-error hidden" id="lock-error-msg">⚠️ Contraseña incorrecta. Intente nuevamente.</span>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN FUERA DEL CONTENEDOR PRINCIPAL PARA GARANTIZAR APERTURA 100% -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ Ajustes de WhatsApp</h2>
+        <button class="modal-close" id="close-settings-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>
+          <strong>Contraseña de Acceso:</strong>
+          <input type="password" id="cfg-app-password" value="Dsmo1109">
+        </label>
+        <p class="modal-note">💡 Respaldo automático 24/7 de audios, fotos de recibos y mensajes en la nube.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancel-settings-btn">Cancelar</button>
+        <button class="btn-primary" id="save-settings-btn">Guardar Cambios</button>
+      </div>
     </div>
   </div>
 
   <!-- CONTENEDOR DE LA APP OCULTO HASTA DESBLOQUEAR (#app.hidden) -->
   <div id="app" class="app-container hidden">
 
-    <!-- BARRA LATERAL / NAVEGACIÓN -->
+    <!-- BARRA LATERAL ESTILO WHATSAPP WEB -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand">
-          <div class="brand-icon">👑</div>
+          <div class="brand-icon">💬</div>
           <div class="brand-info">
-            <h1>EQUIPO MIRANDA</h1>
-            <span class="badge-status online">● Nube 24/7 Activa</span>
+            <h1>WhatsApp Miranda</h1>
+            <span class="badge-status online">● En Línea 24/7</span>
           </div>
         </div>
+        <button class="settings-btn" id="open-settings-btn" title="Ajustes de WhatsApp">⚙️</button>
       </div>
 
       <!-- PESTAÑAS -->
       <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="contacts" id="btn-tab-contacts">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-          Contactos
-        </button>
-        <button class="tab-btn" data-tab="channels" id="btn-tab-channels">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          Canales
-        </button>
+        <button class="tab-btn active" data-tab="contacts" id="btn-tab-contacts">Chats</button>
+        <button class="tab-btn" data-tab="channels" id="btn-tab-channels">Novedades</button>
       </div>
 
-      <!-- LISTA DE CONTACTOS DE LA EMPRESA -->
+      <!-- LISTA DE CHATS -->
       <div class="contacts-list" id="contacts-list">
         <!-- Generado dinámicamente en app.js -->
       </div>
@@ -94,26 +121,27 @@
             <span class="user-name">Deymer Miranda</span>
             <span class="user-role">Director General</span>
           </div>
-          <button class="settings-btn" id="open-settings-btn" title="Configurar Sync Nube">⚙️</button>
         </div>
       </div>
     </aside>
 
     <!-- ÁREA PRINCIPAL DE CHAT -->
     <main class="chat-area" id="chat-area">
+      <!-- HEADER HEADER TIPO WHATSAPP MOBILE -->
       <header class="chat-header">
         <button class="mobile-toggle" id="mobile-sidebar-toggle">☰</button>
         <div class="active-contact-info" id="active-contact-header">
           <div class="avatar-header" id="current-chat-avatar">👑</div>
           <div>
             <h2 id="current-chat-name">GERENTE GENERAL</h2>
-            <p id="current-chat-role">Director General</p>
+            <p id="current-chat-role">en línea</p>
           </div>
         </div>
         <div class="header-actions">
-          <button class="download-apk-btn" id="install-pwa-btn" title="Instalar App Nativa">📱 Instalar App</button>
-          <button class="mode-toggle-btn" id="toggle-esposa-mode" title="Modo Esposa">👩‍💼 Modo Esposa</button>
-          <span class="cid-badge" id="current-chat-cid">ID: 49730e22-05bf</span>
+          <button class="header-icon-btn" title="Llamada">📞</button>
+          <button class="header-icon-btn" title="Videollamada">📹</button>
+          <button class="mode-toggle-btn" id="toggle-esposa-mode" title="Modo Lindsay">👩‍💼 Modo Lindsay</button>
+          <button class="download-apk-btn" id="install-pwa-btn" title="Instalar App">📱 Instalar</button>
         </div>
       </header>
 
@@ -122,38 +150,46 @@
         <div class="lindsay-banner-content">
           <div class="lindsay-avatar">👩‍💼</div>
           <div class="lindsay-text">
-            <h3>Bienvenida Lindsay</h3>
-            <p>Reporte de Gastos & Tarjeta de Crédito/Débito 24/7</p>
+            <h3>Modo Lindsay Miranda</h3>
+            <p>Reporte instantáneo de gastos en tarjeta por voz o foto de recibo</p>
           </div>
-          <div class="lindsay-badge">💳 Modo Lindsay</div>
+          <div class="lindsay-badge">💳 Activo</div>
         </div>
       </div>
 
-      <!-- HISTORIAL DE MENSAJES -->
+      <!-- HISTORIAL DE MENSAJES DE CHAT -->
       <div class="messages-container" id="messages-container">
-        <!-- Mensajes renderizados aquí -->
+        <!-- Mensajes tipo WhatsApp renderizados aquí -->
       </div>
 
-      <!-- BARRA DE ENTRADA ESTILO WHATSAPP (BOTONES GRANDES Y TÁCTILES) -->
+      <!-- BARRA DE GRABACIÓN DE AUDIO ACTIVA -->
+      <div class="recording-bar hidden" id="recording-bar">
+        <span class="rec-dot">🔴</span>
+        <span class="rec-timer" id="recording-timer">00:00</span>
+        <span class="rec-label">Grabando nota de voz...</span>
+        <button type="button" class="cancel-rec-btn" id="cancel-rec-btn">Cancelar</button>
+      </div>
+
+      <!-- BARRA DE ENTRADA ESTILO WHATSAPP 1:1 -->
       <footer class="chat-input-area">
         <div class="media-preview-bar hidden" id="media-preview-bar">
           <span id="preview-text"></span>
           <button class="close-preview" id="close-preview-btn">✕</button>
         </div>
 
-        <form class="input-form whatsapp-style" id="chat-form">
-          <label class="action-circle-btn" title="Subir Recibo de Tarjeta">
-            📷
+        <form class="input-form whatsapp-1to1" id="chat-form">
+          <label class="attach-circle-btn" title="Adjuntar Recibo de Tarjeta">
+            📎
             <input type="file" id="photo-input" accept="image/*" style="display:none;">
           </label>
           
-          <button type="button" class="action-circle-btn" id="record-voice-btn" title="Nota de Voz">
+          <button type="button" class="mic-circle-btn" id="record-voice-btn" title="Grabar Nota de Voz">
             🎙️
           </button>
 
-          <input type="text" id="message-text-input" placeholder="Mensaje..." autocomplete="off" required>
+          <input type="text" id="message-text-input" placeholder="Mensaje" autocomplete="off">
 
-          <button type="submit" class="send-circle-btn" id="send-msg-btn" title="Enviar">
+          <button type="submit" class="send-circle-btn" id="send-msg-btn" title="Enviar Mensaje">
             ➤
           </button>
         </form>
@@ -162,27 +198,6 @@
 
   </div>
 
-  <!-- MODAL DE CONFIGURACIÓN -->
-  <div class="modal-overlay hidden" id="settings-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>⚙️ Configuración 24/7</h2>
-        <button class="modal-close" id="close-settings-btn">✕</button>
-      </div>
-      <div class="modal-body">
-        <label>
-          <strong>Contraseña Personal de Acceso:</strong>
-          <input type="password" id="cfg-app-password" value="Dsmo1109">
-        </label>
-        <p class="modal-note">💡 La Web App guarda localmente tus reportes y los sincroniza con la nube las 24 horas.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" id="cancel-settings-btn">Cancelar</button>
-        <button class="btn-primary" id="save-settings-btn">Guardar</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
