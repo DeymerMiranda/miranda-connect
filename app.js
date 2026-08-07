@@ -1,5 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v5 (LOCK ISOLATION FIX)
+   EQUIPO MIRANDA - WEB APP LOGIC & 24/7 SYNC ENGINE v6
+   Título Oficial: RESPONSABLE DE DISEÑO (bc2a710c-ed7a-44e2-aa5e-08ae02a26942)
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -60,7 +61,7 @@ const TEAM_MEMBERS = [
   {
     id: "diseno",
     cid: "bc2a710c-ed7a-44e2-aa5e-08ae02a26942",
-    name: "GERENTE DE DISEÑO",
+    name: "RESPONSABLE DE DISEÑO",
     role: "Diseño & UI/UX",
     avatar: "🎨",
     status: "active",
@@ -110,7 +111,7 @@ let isRecording = false;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v5");
+  const saved = localStorage.getItem("miranda_chat_histories_v6");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -128,7 +129,7 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v5", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v6", JSON.stringify(chatHistories));
 }
 
 const contactsListEl = document.getElementById("contacts-list");
@@ -191,7 +192,6 @@ function checkPwaInstallState() {
   }
 }
 
-// LÓGICA DE BLOQUEO CON DESBLOQUEO DE #app
 function setupLockScreen() {
   const lockForm = document.getElementById("lock-screen-form");
   const lockInput = document.getElementById("lock-password-input");
@@ -544,7 +544,7 @@ function generateAgentResponse(userText, mediaType) {
   } else if (activeChat.id === "asistente") {
     responseText = `📋 **[Asistente]:** Registrado en \`BITACORA_GENERAL_EMPRESA.md\`: "${userText}".`;
   } else if (activeChat.id === "diseno") {
-    responseText = `🎨 **[Diseño UI/UX]:** Directiva visual procesada: "${userText}". Componentes corregidos.`;
+    responseText = `🎨 **[Responsable de Diseño]:** Directiva visual procesada: "${userText}". Componentes corregidos.`;
   } else if (activeChat.id === "seguridad") {
     responseText = `🛡️ **[Seguridad]:** Auditado bajo Ley 3: "${userText}". 0 vulnerabilidades.`;
   } else {
