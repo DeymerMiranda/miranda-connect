@@ -1,6 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - WHATSAPP 1:1 EXACT DESIGN SYSTEM & STYLES (v11)
-   Fondo #0b141a | Enviadas #005c4b | Recibidas #202c33 | Entrada #202c33
+   EQUIPO MIRANDA - WHATSAPP 1:1 EXACT DESIGN SYSTEM & STYLES (v12)
+   Fondo #0b141a | Enviadas #005c4b | Recibidas #202c33 | Check ✓ de Envío
    ========================================================================== */
 
 :root {
@@ -14,7 +14,7 @@
   --wa-text-primary: #e9edef;
   --wa-text-muted: #8696a0;
   --wa-teal: #00a884;
-  --wa-blue-check: #53bdeb;
+  --wa-check-gray: #8696a0;
 
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --sidebar-width: 320px;
@@ -227,9 +227,10 @@ body {
   margin-left: 8px;
 }
 
+/* MOSTRAR UN ÚNICO CHECK GRIS ✓ INDICANDO ENVIADO AL BUZÓN REAL */
 .message-bubble.sent .time::after {
-  content: " ✓✓";
-  color: var(--wa-blue-check);
+  content: " ✓";
+  color: var(--wa-check-gray);
   font-weight: bold;
 }
 
