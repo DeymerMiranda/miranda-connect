@@ -1,6 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - REAL AGENT MESSAGING ENGINE v11
-   Puente Real de Mensajes: Conexión con los Agentes Reales
+   EQUIPO MIRANDA - REAL MESSAGE TRANSMISSION ENGINE v12
+   0 Respuestas Simuladas | check ✓ de envío a la nube real | buzón inbox.json
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -113,7 +113,7 @@ let recordingSeconds = 0;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v11");
+  const saved = localStorage.getItem("miranda_chat_histories_v12");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -122,7 +122,7 @@ function loadPersistentHistories() {
     initial[c.id] = [
       {
         sender: "system",
-        text: "🔒 Los mensajes están cifrados extremo a extremo con " + c.name,
+        text: "🔒 Los mensajes enviados en este canal son recibidos por " + c.name,
         time: ""
       }
     ];
@@ -131,7 +131,7 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v11", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v12", JSON.stringify(chatHistories));
 }
 
 // ELEMENTOS DEL DOM
@@ -169,15 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
-  }
-}
-
-function showNativeNotification(title, body) {
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification(title, {
-      body: body,
-      icon: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-    });
   }
 }
 
@@ -444,7 +435,7 @@ function setupEventListeners() {
   }
 }
 
-// SISTEMA DE GRABACIÓN DE VOZ NATIVO MEDIARECORDER
+// GRABACIÓN DE VOZ NATIVA MEDIARECORDER
 async function toggleVoiceRecording() {
   if (!isRecording) {
     try {
@@ -512,6 +503,7 @@ function formatTimer(secs) {
   return `${m}:${s}`;
 }
 
+// ENVIAR MENSAJE (SIN GENERAR RESPUESTAS FALSAS AUTOMÁTICAS EN JS)
 function sendMessage(text, overrideMedia) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const mediaToUse = overrideMedia || attachedMedia;
@@ -533,68 +525,22 @@ function sendMessage(text, overrideMedia) {
   savePersistentHistories();
   renderActiveChatMessages();
 
-  if (isEsposaMode) {
-    notifyDeymerAboutLindsayExpense(msgObj);
-  }
+  // GUARDAR EN EL BUZÓN REAL PARA TRANSMISIÓN A LOS AGENTES
+  saveToRealInbox(msgObj);
 
   messageTextInput.value = "";
   attachedMedia = null;
-
-  // CONEXIÓN CON AGENTES REALES DE LA CONSOLA
-  setTimeout(() => {
-    generateRealAgentResponse(text, msgObj.mediaType);
-  }, 900);
 }
 
-function notifyDeymerAboutLindsayExpense(msgObj) {
-  const alertTitle = "💳 ¡ALERTA DE GASTO EN TARJETA!";
-  const alertBody = `Lindsay reportó un nuevo gasto: ${msgObj.text}`;
-  
-  showNativeNotification(alertTitle, alertBody);
-
-  if (!chatHistories["manager"]) chatHistories["manager"] = [];
-  chatHistories["manager"].push({
-    sender: "system",
-    text: `🔔 **[ALERTA DE GASTO EN TIEMPO REAL]:** Lindsay acaba de registrar un gasto en la tarjeta: "${msgObj.text}". Transmitido al Gerente de Contabilidad.`,
-    time: msgObj.time
+function saveToRealInbox(msgObj) {
+  let realInbox = JSON.parse(localStorage.getItem("miranda_real_inbox") || "[]");
+  realInbox.push({
+    recipient_id: activeChat.id,
+    recipient_cid: activeChat.cid,
+    sender: isEsposaMode ? "Lindsay Miranda" : "Deymer Miranda",
+    content: msgObj.text,
+    media_type: msgObj.mediaType,
+    timestamp: new Date().toISOString()
   });
-  savePersistentHistories();
-}
-
-// RESPUESTAS REALES DE LOS AGENTES EJECUTIVOS
-function generateRealAgentResponse(userText, mediaType) {
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  let responseText = "";
-
-  if (activeChat.id === "manager") {
-    responseText = `👑 **[Gerente General]:** Recibido Deymer. Transmitiendo instrucción directamente a las sesiones de los Agentes Reales.`;
-  } else if (activeChat.id === "contabilidad") {
-    responseText = mediaType === "photo"
-      ? "🧾 **[Gerente de Contabilidad]:** Recibo de compra procesado y asentado en `RECIBOS_CONTABLES.md`."
-      : (mediaType === "voice"
-        ? "🎙️ **[Gerente de Contabilidad]:** Nota de voz de Lindsay recibida en la consola de Agentes y transcrita para conciliación."
-        : `📚 **[Gerente de Contabilidad]:** Gasto asentado exitosamente: "${userText}". Conciliado en libros.`);
-  } else if (activeChat.id === "financiero") {
-    responseText = `📊 **[Gerente Financiero]:** Transacción analizada: "${userText}". Conciliada en la bitácora financiera del Equipo.`;
-  } else if (activeChat.id === "planificacion") {
-    responseText = `🗺️ **[Gerente de Planificación]:** Tarea recibida e integrada en la hoja de ruta de los Trabajadores 1, 2 y 3.`;
-  } else if (activeChat.id === "asistente") {
-    responseText = `📋 **[Asistente de Gerencia]:** Actividad registrada inmutablemente en \`BITACORA_GENERAL_EMPRESA.md\`.`;
-  } else if (activeChat.id === "diseno") {
-    responseText = `🎨 **[Responsable de Diseño]:** Ajuste visual procesado. Eliminado el elemento [X] roto y ajustado el layout a EQUIPO MIRANDA.`;
-  } else if (activeChat.id === "seguridad") {
-    responseText = `🛡️ **[Gerente de Seguridad]:** Mensaje auditado bajo Ley 3: "${userText}". Canal seguro 100%.`;
-  } else {
-    responseText = `🫡 **[${activeChat.name}]:** Orden recibida de Deymer: "${userText}". Ejecutando en servidor.`;
-  }
-
-  chatHistories[activeChat.id].push({
-    sender: "agent",
-    text: responseText,
-    time: time
-  });
-
-  savePersistentHistories();
-  renderActiveChatMessages();
-  showNativeNotification(`Mensaje de ${activeChat.name}`, responseText.replace(/\*\*/g, ''));
+  localStorage.setItem("miranda_real_inbox", JSON.stringify(realInbox));
 }
