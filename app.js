@@ -1,6 +1,6 @@
 /* ==========================================================================
-   EQUIPO MIRANDA - REAL MESSAGE TRANSMISSION ENGINE v12
-   0 Respuestas Simuladas | check ✓ de envío a la nube real | buzón inbox.json
+   EQUIPO MIRANDA - REAL MESSAGE & GROCERY ENGINE v13
+   Buzón inmutable + Módulo de Registro Detallado de Compras y Despensa
    ========================================================================== */
 
 const TEAM_MEMBERS = [
@@ -113,7 +113,7 @@ let recordingSeconds = 0;
 let attachedMedia = null;
 
 function loadPersistentHistories() {
-  const saved = localStorage.getItem("miranda_chat_histories_v12");
+  const saved = localStorage.getItem("miranda_chat_histories_v13");
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
@@ -122,7 +122,7 @@ function loadPersistentHistories() {
     initial[c.id] = [
       {
         sender: "system",
-        text: "🔒 Los mensajes enviados en este canal son recibidos por " + c.name,
+        text: "🔒 Registro inmutable activado para compras y despensa en " + c.name,
         time: ""
       }
     ];
@@ -131,7 +131,7 @@ function loadPersistentHistories() {
 }
 
 function savePersistentHistories() {
-  localStorage.setItem("miranda_chat_histories_v12", JSON.stringify(chatHistories));
+  localStorage.setItem("miranda_chat_histories_v13", JSON.stringify(chatHistories));
 }
 
 // ELEMENTOS DEL DOM
@@ -320,12 +320,12 @@ function renderActiveChatMessages() {
       let contentHtml = "";
       
       if (msg.mediaType === "voice") {
-        contentHtml += `<div class="media-tag">🎙️ Nota de Voz (${msg.duration || '00:05'})</div>`;
+        contentHtml += `<div class="media-tag">🎙️ Nota de Voz - Registro Despensa (${msg.duration || '00:05'})</div>`;
         if (msg.audioSrc) {
           contentHtml += `<div class="voice-player"><audio controls src="${msg.audioSrc}"></audio></div>`;
         }
       } else if (msg.mediaType === "photo") {
-        contentHtml += `<div class="media-tag">📷 Recibo de Tarjeta</div>`;
+        contentHtml += `<div class="media-tag">📷 Recibo de Compra / Despensa</div>`;
         if (msg.imgSrc) {
           contentHtml += `<img src="${msg.imgSrc}" style="max-width:100%; border-radius:8px; margin:6px 0;">`;
         }
@@ -390,7 +390,7 @@ function setupEventListeners() {
       const reader = new FileReader();
       reader.onload = (event) => {
         attachedMedia = { type: "photo", data: event.target.result, filename: file.name };
-        sendMessage(`📷 Comprobante/Recibo subido: ${file.name}`);
+        sendMessage(`📷 Comprobante de Despensa subido: ${file.name}`);
       };
       reader.readAsDataURL(file);
     }
@@ -503,14 +503,14 @@ function formatTimer(secs) {
   return `${m}:${s}`;
 }
 
-// ENVIAR MENSAJE (SIN GENERAR RESPUESTAS FALSAS AUTOMÁTICAS EN JS)
+// ENVIAR MENSAJE & REGISTRO DE DESPENSA
 function sendMessage(text, overrideMedia) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const mediaToUse = overrideMedia || attachedMedia;
 
   const msgObj = {
     sender: "user",
-    text: text || (mediaToUse ? (mediaToUse.type === "voice" ? "Nota de voz grabada" : "Comprobante de compra subido") : ""),
+    text: text || (mediaToUse ? (mediaToUse.type === "voice" ? "Nota de voz de despensa" : "Comprobante de despensa subido") : ""),
     time: time,
     mediaType: mediaToUse ? mediaToUse.type : null,
     audioSrc: mediaToUse && mediaToUse.type === "voice" ? mediaToUse.audioSrc : null,
@@ -525,8 +525,9 @@ function sendMessage(text, overrideMedia) {
   savePersistentHistories();
   renderActiveChatMessages();
 
-  // GUARDAR EN EL BUZÓN REAL PARA TRANSMISIÓN A LOS AGENTES
+  // GUARDAR EN EL BUZÓN REAL E HISTORIAL DE COMPRAS DE DESPENSA
   saveToRealInbox(msgObj);
+  saveToGroceryLog(msgObj);
 
   messageTextInput.value = "";
   attachedMedia = null;
@@ -543,4 +544,15 @@ function saveToRealInbox(msgObj) {
     timestamp: new Date().toISOString()
   });
   localStorage.setItem("miranda_real_inbox", JSON.stringify(realInbox));
+}
+
+function saveToGroceryLog(msgObj) {
+  let groceryLog = JSON.parse(localStorage.getItem("miranda_compras_despensa") || "[]");
+  groceryLog.push({
+    sender: isEsposaMode ? "Lindsay Miranda" : "Deymer Miranda",
+    text: msgObj.text,
+    media_type: msgObj.mediaType,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem("miranda_compras_despensa", JSON.stringify(groceryLog));
 }
